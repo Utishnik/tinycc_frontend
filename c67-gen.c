@@ -167,7 +167,7 @@ int TotalBytesPushedOnStack;
 #endif
 
 #undef BOOL
-#define BOOL int
+#define BOOL char
 
 #define ALWAYS_ASSERT(x) \
 do {\
