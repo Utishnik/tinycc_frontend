@@ -1,20 +1,10 @@
 #ifndef FUCN_FRONTEND
 #define FUCN_FRONTEND
 
-enum Base_FucntionTypes
-{
-    VOID,
-    INT_32,
-    INT_64,
-    INT_16,
-    INT_8,
-    UINT_32,
-    UINT_64,
-    UINT_16,
-    UINT_8,
-    PTR
-};
 
+
+/* storage */
+#define VT_EXTERN  0x0
 struct FuncAttr {
     unsigned
     func_call   : 3, /* calling convention (0..5), see below */
