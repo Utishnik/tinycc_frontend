@@ -1,5 +1,11 @@
 #include "tcc.h"
 
+static int is_compatible_unqualified_types(CType *type1, CType *type2)
+{
+    return compare_types(type1,type2,1);
+}
+
+
 static int is_compatible_func(CType *type1, CType *type2)
 {
     Sym *s1, *s2;

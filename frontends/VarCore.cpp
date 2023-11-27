@@ -14,7 +14,8 @@
 #define VT_FLOAT            8  /* IEEE float */
 #define VT_DOUBLE           9  /* IEEE double */
 #define VT_LDOUBLE         10  /* IEEE long double */
-#define VT_BOOL            11  /* ISOC99 boolean type */                                                                                     #define VT_QLONG           13  /* 128-bit integer. Only used for x86-64 ABI */
+#define VT_BOOL            11  /* ISOC99 boolean type */
+#define VT_QLONG           13  /* 128-bit integer. Only used for x86-64 ABI */
 #define VT_QFLOAT          14  /* 128-bit float. Only used for x86-64 ABI */
 
 #define VT_UNSIGNED    0x0010  /* unsigned type */
@@ -25,7 +26,7 @@
 #define VT_VOLATILE    0x0200  /* volatile modifier */
 #define VT_VLA         0x0400  /* VLA type (also has VT_PTR and VT_ARRAY) */
 #define VT_LONG        0x0800  /* long type (also has VT_INT rsp. VT_LLONG) */
-*/
+
 /* storage */
 #define VT_EXTERN  0x00001000  /* extern definition */
 #define VT_STATIC  0x00002000  /* static variable */
@@ -33,7 +34,9 @@
 ST_INLN int is_float(int t)
 {
    // int bt = t & VT_BTYPE;
-    return bt == VT_LDOUBLE                                                                                                                          || bt == VT_DOUBLE
+   if(bt>VT_BTYPE) 
+    return bt == VT_LDOUBLE 
+        || bt == VT_DOUBLE
         || bt == VT_FLOAT
         || bt == VT_QFLOAT;
 }
