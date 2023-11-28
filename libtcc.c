@@ -249,9 +249,47 @@ ST_FUNC char *tcc_load_text(int fd)
 #undef malloc
 #undef realloc
 
-void mem_error(const char *msg)
+#include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+//TODO DEBAG
+
+int counter_symbol_in_str(const char *str,char s)
 {
-    fprintf(stderr, "%s\n", msg);
+    int res=0;
+    if(!str) printf("inside compiler error file = %s\nfunction = %s\nline = %d",__FILE__,__func__,__LINE__);
+    int len=strlen(str);
+    for(int i=0;i<len;i++)
+        if(str[i]==s) ++res;
+    return res;
+}
+
+//adds a character at the specified distance from the found character in the string
+char *symbol_str_add(const char* str,char finding_symbol,int distantion,char writing_symbol)
+{
+    int len=strlen(str);
+    int cnt_s_in_str=counter_symbol_in_str(str,s);
+    int len_new_str=len+cnt_s_in_str;
+
+    char *new_str=malloc(sizeof(char)*len_new_str);
+    for(int i=0;i<len;i++)
+    {
+        if(str[i]!=finding_symbol) new_str[i]=str[i];
+        else new_str[i+distantion]=writing_symbol;
+    }
+    return new_str;
+}
+
+void mem_error(const char *fmt,...)
+{
+    va_list ap;
+    int cnt_arg=counter_symbol_in_str(fmt,'%');
+    va_start(ap,cnt_arg);
+    char str1=symbol_str_add(fmt,'%',2,'\n');
+    fprintf(stderr, str1, ap);
+    va_end(ap);
     exit (1);
 }
 
@@ -260,6 +298,13 @@ void mem_error(const char *msg)
 PUB_FUNC void tcc_free(void *ptr)
 {
     free(ptr);
+    if(ptr) mem_error("memory not free(free)");
+}
+
+PUB_FUNC void tcc_free_2darr(void **ptr,int count)
+{
+    for(int i=0;i<count;i++) tcc_free(ptr[i]);
+    tcc_free(ptr); 
 }
 
 PUB_FUNC void *tcc_malloc(unsigned long size)
@@ -284,8 +329,8 @@ PUB_FUNC void *tcc_realloc(void *ptr, unsigned long size)
 {
     void *ptr1;
     if (size == 0) {
-	free(ptr);
-	ptr1 = NULL;
+    free(ptr);
+    ptr1 = NULL;
     }
     else {
         ptr1 = realloc(ptr, size);
@@ -973,7 +1018,7 @@ LIBTCCAPI int tcc_set_output_type(TCCState *s, int output_type)
     if (output_type != TCC_OUTPUT_MEMORY && !s->nostdlib) {
 #if TARGETOS_OpenBSD
         if (output_type != TCC_OUTPUT_DLL)
-	    tcc_add_crt(s, "crt0.o");
+        tcc_add_crt(s, "crt0.o");
         if (output_type == TCC_OUTPUT_DLL)
             tcc_add_crt(s, "crtbeginS.o");
         else
@@ -1134,8 +1179,8 @@ ST_FUNC int tcc_add_file_internal(TCCState *s1, const char *filename, int flags)
                 dl = dlopen(soname, RTLD_GLOBAL | RTLD_LAZY);
                 if (dl)
                     tcc_add_dllref(s1, soname, 0)->handle = dl, ret = 0;
-	        if (filename != soname)
-		    tcc_free((void *)soname);
+            if (filename != soname)
+            tcc_free((void *)soname);
 #endif
             } else if (obj_type == AFF_BINTYPE_DYN) {
                 ret = macho_load_dll(s1, fd, filename, (flags & AFF_REFERENCED_DLL) != 0);
@@ -1530,9 +1575,9 @@ static int tcc_set_linker(TCCState *s, const char *option)
 #endif
 #ifdef TCC_TARGET_MACHO
         } else if (link_option(option, "all_load", &p)) {
-	    s->filetype |= AFF_WHOLE_ARCHIVE;
+        s->filetype |= AFF_WHOLE_ARCHIVE;
         } else if (link_option(option, "force_load", &p)) {
-	    s->filetype |= AFF_WHOLE_ARCHIVE;
+        s->filetype |= AFF_WHOLE_ARCHIVE;
             args_parser_add_file(s, p, AFF_TYPE_LIB | (s->filetype & ~AFF_TYPE_MASK));
             s->nb_libraries++;
         } else if (link_option(option, "single_module", &p)) {
@@ -1973,7 +2018,7 @@ dorun:
         enable_backtrace:
             s->do_backtrace = 1;
             s->do_debug = s->do_debug ? s->do_debug : 1;
-	    s->dwarf = DWARF_VERSION;
+        s->dwarf = DWARF_VERSION;
             break;
 #ifdef CONFIG_TCC_BCHECK
         case TCC_OPTION_b:
@@ -2205,19 +2250,19 @@ dorun:
             x = TCC_OUTPUT_DLL;
             goto set_output_type;
         case TCC_OPTION_flat_namespace:
-	     break;
+         break;
         case TCC_OPTION_two_levelnamespace:
-	     break;
+         break;
         case TCC_OPTION_undefined:
-	     break;
+         break;
         case TCC_OPTION_install_name:
-	    s->install_name = tcc_strdup(optarg);
+        s->install_name = tcc_strdup(optarg);
             break;
         case TCC_OPTION_compatibility_version:
-	    s->compatibility_version = parse_version(s, optarg);
+        s->compatibility_version = parse_version(s, optarg);
             break;
         case TCC_OPTION_current_version:
-	    s->current_version = parse_version(s, optarg);;
+        s->current_version = parse_version(s, optarg);;
             break;
 #endif
         case TCC_OPTION_ar:

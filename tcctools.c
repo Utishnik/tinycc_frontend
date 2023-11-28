@@ -29,6 +29,7 @@
  */
 
 #include "tcc.h"
+#include "libtcc.h"
 
 //#define ARMAG  "!<arch>\n"
 #define ARFMAG "`\n"
@@ -581,14 +582,16 @@ const int _dowildcard = 1;
 /* -------------------------------------------------------------- */
 /* generate xxx.d file */
 
-static char *escape_target_dep(const char *s) {
+
+//edit probels on slash
+ST_FUNC char *escape_target_dep(const char *s) {
     char *res = tcc_malloc(strlen(s) * 2 + 1);
     int j;
-    for (j = 0; *s; s++, j++) {
-        if (is_space(*s)) {
-            res[j++] = '\\';
-        }
-        res[j] = *s;
+    for(j=0;j<strlen(s);j++)
+    {
+        if(is_space(s[j-1]))
+            res[j++]='\\';
+        res[j]=s[j-1];
     }
     res[j] = '\0';
     return res;
@@ -597,7 +600,8 @@ static char *escape_target_dep(const char *s) {
 ST_FUNC int gen_makedeps(TCCState *s1, const char *target, const char *filename)
 {
     FILE *depout;
-    char buf[1024], *escaped_target;
+    char buf[1024], 
+    char **escaped_target;
     int i, k;
 
     if (!filename) {
@@ -616,34 +620,27 @@ ST_FUNC int gen_makedeps(TCCState *s1, const char *target, const char *filename)
         return tcc_error_noabort("could not open '%s'", filename);
     if (s1->verbose)
         printf("<- %s\n", filename);
-
-    fprintf(depout, "%s:", target);
+    escaped_targets = tcc_malloc(s1->nb_target_deps * sizeof(*escaped_targets));
+    num_targets = 0;
     for (i = 0; i<s1->nb_target_deps; ++i) {
         for (k = 0; k < i; ++k)
             if (0 == strcmp(s1->target_deps[i], s1->target_deps[k]))
-                goto next;
-        escaped_target = escape_target_dep(s1->target_deps[i]);
-        fprintf(depout, " \\\n  %s", escaped_target);
-        tcc_free(escaped_target);
-    next:;
+                continue;
+        escaped_targets[num_targets++] = escape_target_dep(s1->target_deps[i]);
     }
+    fprintf(depout, "%s:", target);
+    for (i = 0; i < num_targets; ++i)
+        fprintf(depout, " \\\n  %s", escaped_targets[i]);
     fprintf(depout, "\n");
     if (s1->gen_phony_deps) {
-        /* Skip first file, which is the c file.
-         * This will still print any additional c files specified
-         * on command-line, but e.g. clang produces broken dependency
-         * files in this case as well, printing only dependencies for last
-         * file in command line. So ignore this case. */
-        for (i = 1; i<s1->nb_target_deps; ++i) {
-            for (k = 0; k < i; ++k)
-                if (0 == strcmp(s1->target_deps[i], s1->target_deps[k]))
-                    goto next2;
-            escaped_target = escape_target_dep(s1->target_deps[i]);
-            fprintf(depout, "%s:\n", escaped_target);
-            tcc_free(escaped_target);
-        next2:;
+            /* Skip first file, which is the c file.
+            * Only works for single file give on command-line,
+            * but other compilers have the same limitation */
+            for (i = 1; i < num_targets; ++i)
+                fprintf(depout, "%s:\n", escaped_targets[i]);
         }
     }
+    tcc_free_2darr(escaped_targets,num_targets);
     fclose(depout);
     return 0;
 }

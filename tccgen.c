@@ -2592,7 +2592,7 @@ static void type_to_str(char *buf, int buf_size,
     t = type->t;
     bt = t & VT_BTYPE;
     buf[0] = '\0';
-
+    //todo edit if in switch
     if (t & VT_EXTERN)
         pstrcat(buf, buf_size, "extern ");
     if (t & VT_STATIC)
@@ -2616,7 +2616,6 @@ static void type_to_str(char *buf, int buf_size,
 
     buf_size -= strlen(buf);
     buf += strlen(buf);
-
     switch(bt) {
     case VT_VOID:
         tstr = "void";
@@ -2764,7 +2763,7 @@ static int is_compatible_func(CType *type1, CType *type2)
         && s1->f.func_type != FUNC_OLD
         && s2->f.func_type != FUNC_OLD)
         return 0;
-    for (;;) {
+    while(true) {
         if (!is_compatible_unqualified_types(&s1->type, &s2->type))
             return 0;
         if (s1->f.func_type == FUNC_OLD || s2->f.func_type == FUNC_OLD )

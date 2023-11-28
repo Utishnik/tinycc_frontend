@@ -18,6 +18,8 @@ typedef void (*TCCErrorFunc)(void *opaque, const char *msg);
 /* create a new TCC compilation context */
 LIBTCCAPI TCCState *tcc_new(void);
 
+PUB_FUNC void tcc_free_2darr(void **ptr,int count)
+
 /* free a TCC compilation context */
 LIBTCCAPI void tcc_delete(TCCState *s);
 
