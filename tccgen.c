@@ -1501,6 +1501,11 @@ static int get_temp_local_var(int size,int align){
 			temp_var->align=align;
 			nb_temp_local_vars++;
 		}
+		else
+		{
+			printf("inside compiler error file = %s\n",__File__);
+			printf("functiin = %s\nLine = %d\n",__func__,__LINE__);
+		}
 		found_var=loc;
 	}
 	return found_var;
@@ -4871,6 +4876,8 @@ static int asm_label_instr(void)
     return v;
 }
 
+#include "InsideCompilerErr.h"
+
 static int post_type(CType *type, AttributeDef *ad, int storage, int td)
 {
     int n, l, t1, arg_size, align;
@@ -4903,7 +4910,11 @@ static int post_type(CType *type, AttributeDef *ad, int storage, int td)
             for(;;) {
                 /* read param name and compute offset */
                 if (l != FUNC_OLD) {
-                    if ((pt.t & VT_BTYPE) == VT_VOID && tok == ')')
+		    if(pt.t>VT_BTYPE) {
+			InsidePrintWarn("pt.t>VT_BTYPE\n");
+			InsidePrintWarn("Possible data loss with bit &\n");
+	            }
+                    if ((pt.t) == VT_VOID)
                         break;
                     type_decl(&pt, &ad1, &n, TYPE_DIRECT | TYPE_ABSTRACT | TYPE_PARAM);
                     if ((pt.t & VT_BTYPE) == VT_VOID)
@@ -5021,9 +5032,16 @@ check:
                 n = vtop->c.i;
                 if (n < 0)
                     tcc_error("invalid array size");
-            } else {
-                if (!is_integer_btype(vtop->type.t & VT_BTYPE))
-                    tcc_error("size of variable length array should be an integer");
+             
+            if (!is_integer_btype(vtop->type.t & VT_BTYPE))
+                 tcc_error("size of variable length array should be an integer");
+	
+	    }
+	    else{
+	    #ifdef Static_Analizator
+		if(vtop->r & (VT_VALMASK | VT_LVAL | VT_SYM) == VT_CONST)
+		    tcc_error("not constant size");
+	    #endif
                 n = 0;
                 t1 = VT_VLA;
             }

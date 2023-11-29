@@ -867,7 +867,7 @@ static uint8_t *parse_pp_string(uint8_t *p, int sep, CString *str)
             if (c == '\\')
                 c = handle_bs(&p);
             if (c == '\n')
-                goto add_lf;
+                goto add_lf;//увеличивает колво строк на 1 и записует символ
             if (c == CH_EOF)
                 goto unterminated_string;
             if (str)
@@ -876,7 +876,7 @@ static uint8_t *parse_pp_string(uint8_t *p, int sep, CString *str)
         } else {
         add_char:
             if (str)
-                cstr_ccat(str, c);
+                cstr_ccat(str, c);//added symbol to end string
         }
     }
     p++;

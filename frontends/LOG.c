@@ -35,4 +35,9 @@ bool Log_Write(char *fmt,...)
         printf("inside compiler error file = %s\nLine = %d\tfunction = %s",__FILE__,__LINE__,__func__);
         return false;
     }
+    FILE*f=fopen(PathLogFile,"a");
+    	fprintf(f,fmt,ap);
+    fclose(f)
+
+    va_end(ap);
 }
